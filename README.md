@@ -25,13 +25,26 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📝 Document Your Experience
 
-- [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
-- [ ] Explain what fixes you applied.
+**Game purpose:** A number-guessing game where the player tries to identify a hidden secret number within a limited number of attempts. The difficulty setting changes the number range and attempt limit.
+
+**Bugs found:**
+1. `st.session_state.attempts` was initialized to `1` instead of `0`, causing an off-by-one in the "Attempts left" display and triggering the string-cast bug on the very first guess.
+2. On every even-numbered attempt, the secret was cast to a `str` before comparison. Python string ordering made `"9" > "50"` evaluate to `True`, so a guess of 9 against secret 50 incorrectly said "Too High".
+3. The hints ("Go HIGHER!" / "Go LOWER!") were reversed — the logic returned the opposite direction.
+4. Incorrect guesses with outcome "Too High" on even attempts *added* +5 to the score instead of deducting points.
+5. The "New Game" button regenerated the secret using the hardcoded range `1–100` regardless of the chosen difficulty.
+
+**Fixes applied:**
+- `app.py`: Changed attempts initialization from `1` to `0`.
+- `app.py`: Removed the conditional `str()` cast so the secret is always passed as `int` to `check_guess`.
+- `app.py`: Fixed the new-game secret to use `random.randint(low, high)` (difficulty-aware range).
+- `logic_utils.py`: Removed the even-attempt `+5` branch in `update_score`; wrong guesses always deduct 5.
+- `logic_utils.py`: The reversed hint directions were already corrected in the refactored version.
+- `tests/test_game_logic.py`: Added two regression tests — one for the string-comparison bug and one for the score-reward bug. All 5 tests pass with `pytest`.
 
 ## 📸 Demo
 
-- [ ] [Insert a screenshot of your fixed, winning game here]
+_Run `python -m streamlit run app.py`, open the Developer Debug Info expander to see the secret, and make a winning guess to confirm balloons appear and the final score is displayed._
 
 ## 🚀 Stretch Features
 
